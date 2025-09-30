@@ -59,7 +59,7 @@ class RegistrationService:
             db=db,
             email=email,
             verification_token=verification_token,
-            user_name=user_data.get('display_name')
+            user_name=user.display_name
         )
 
         if not email_sent:
@@ -123,7 +123,7 @@ class RegistrationService:
 
         # Отправляем email
         success = ResendEmailService.send_verification_email(
-
+            db,
             email=email,
             verification_token=new_token,
             user_name=user.display_name

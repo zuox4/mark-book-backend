@@ -11,7 +11,7 @@ class UserService:
         # Проверяем существует ли пользователь
         existing_user = db.query(User).filter(User.email == user_data['email']).first()
         if existing_user:
-            raise ValueError("User with this email already exists")
+            raise ValueError("Пользователь с таким Email Уже существует")
         user_from_school_db = SchoolService().check_user_in_school_db(user_data.get('email'))
         if user_from_school_db.status_code == 400:
             raise ValueError("User not found")
@@ -56,6 +56,7 @@ class UserService:
     def authenticate_user(db: Session, email: str, password: str) -> Optional[User]:
         """Аутентификация пользователя"""
         user = db.query(User).filter(User.email == email).first()
+        print(user)
         if not user:
             return None
         if not verify_password(password, user.password_hash):

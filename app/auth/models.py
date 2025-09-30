@@ -34,5 +34,7 @@ class VerifyEmailRequest(BaseModel):
 class UserResponse(BaseModel):
     email: str
     display_name: Optional[str] = None
+    roles: Optional[list] = None
+
 
 

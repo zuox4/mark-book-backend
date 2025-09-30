@@ -31,10 +31,10 @@ async def register(
         )
 
         return {
-            "message": "Registration successful. Please check your email to verify your account.",
+            "message": "Регистрация прошла успешно. Пожалуйста проверьте почтовый ящик",
             "user_id": user.id,
             "email": user.email,
-            "note": "Account will be activated after email verification"
+            "note": "Аккаунт будет активирован после верификации"
         }
 
     except ValueError as e:
@@ -58,7 +58,7 @@ async def verify_email(
         )
 
         return {
-            "message": "Email verified successfully! Your account is now active.",
+            "message": "Email успешно верифицирован!",
             "access_token": access_token,
             "token_type": "bearer",
             "user": {
@@ -66,7 +66,8 @@ async def verify_email(
                 "external_id": user.external_id,
                 "email": user.email,
                 "display_name": user.display_name,
-                "is_verified": user.is_verified
+                "is_verified": user.is_verified,
+                "roles": [i.name for i in user.roles],
             }
         }
     except ValueError as e:
@@ -102,22 +103,23 @@ async def login(
         db: Session = Depends(get_db)
 ):
     """Вход в систему"""
+    print(login_data)
     user = UserService.authenticate_user(db, login_data.email, login_data.password)
     if not user:
-        raise HTTPException(status_code=401, detail="Invalid email or password")
+        raise HTTPException(status_code=401, detail="Неверные логин или пароль!")
 
     # Проверяем подтвержден ли email
     if not user.is_verified:
         raise HTTPException(
             status_code=403,
-            detail="Email not verified. Please check your email for verification link."
+            detail="Email не подтвержден. Пожалуйста проверьте эл.почту"
         )
 
     # Проверяем активен ли аккаунт
     if not user.is_active:
         raise HTTPException(
             status_code=403,
-            detail="Account is not active. Please contact administrator."
+            detail="Аккаунт отключен. Пожалуйста свяжитесь с администратором"
         )
 
     # Обновляем время последнего входа
@@ -151,8 +153,13 @@ async def login(
 async def get_current_user(
         current_user: User = Depends(get_current_active_user)
 ):
+    print(current_user.roles)
     """Получить информацию о текущем пользователе"""
-
-    return current_user
+    res = {
+        "email": current_user.email,
+        "display_name": current_user.display_name,
+        "roles": [i.name for i in current_user.roles],
+    }
+    return res
 
 

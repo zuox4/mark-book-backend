@@ -23,7 +23,7 @@ class ResendEmailService:
         Отправка email с ссылкой подтверждения через Resend
         """
         try:
-            verification_url = f"{settings.FRONTEND_URL}/api/auth/verify-email?token={verification_token}"
+            verification_url = f"{settings.FRONTEND_URL}/verify-email?token={verification_token}"
 
             # Создаем HTML контент
             html_content = ResendEmailService._create_verification_email_html(

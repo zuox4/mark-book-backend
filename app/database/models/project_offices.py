@@ -14,7 +14,7 @@ class ProjectOffice(Base):
     is_active = Column(Boolean, default=True)
 
     # Внешний ключ для связи с владельцем проекта
-    leader_uid = Column(String(255), ForeignKey('users.external_id'))
+    leader_uid = Column(String(255), ForeignKey('users.id'))
 
     # Отношение многие-ко-многим для классов
     accessible_classes = relationship("Group", secondary=p_office_group_association)

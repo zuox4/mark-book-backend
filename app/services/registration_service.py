@@ -25,6 +25,7 @@ class RegistrationService:
             raise ValueError("Пользователь с таким email уже существует")
 
         user_fom_school_db = SchoolService().check_user_in_school_db(email)
+
         if SchoolService().check_user_in_school_db(email).status_code == 400:
             raise ValueError("Пользователь с таким email не найден в базе данных школы")
         if SchoolService().check_user_in_school_db(email).status_code == 500:

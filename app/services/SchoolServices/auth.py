@@ -62,8 +62,17 @@ class SchoolService:
             cursor = conn.cursor(dictionary=True)
             cursor.execute("SELECT * FROM students WHERE email = %s", (email,))
             result = cursor.fetchone()
-            return result
+            print(result.get('personid'))
+            return User(
+                uid=result.get('personid'),
+                display_name=result.get('firstName')+' '+ result.get('lastName') +' '+ result.get('patronymic'),
+                image=None,
+                leader_classes=None,
+                role='student'
+            )
         except Error as e:
+            print("___________________________________")
+            print(e)
             return None
         finally:
             # Всегда закрываем ресурсы в блоке finally
@@ -73,6 +82,8 @@ class SchoolService:
                 conn.close()
 
     def check_user_in_school_db(self, email: str):
+
+
         """Основной метод проверки пользователя"""
         if not email:
             return {'message': 'Email не предоставлен', 'status': 400, 'user': None}
@@ -89,24 +100,25 @@ class SchoolService:
 
             # Затем проверяем студента
             student = self._check_student(email)
+
             if student:
                 return ChekUserResponse(
                     message='Пользователь найден!',
                     status_code=200,
-                    user=teacher,
+                    user=student,
 
                 )
 
             # Если не найден нигде
             return ChekUserResponse(
-                    message='Пользователь найден!',
+                    message='Пользователь не найден!',
                     status_code=400,
                     user=None,
                 )
 
         except Exception as e:
             return ChekUserResponse(
-                    message='Пользователь найден!',
+                    message='Пользователь не найден!',
                     status_code=500,
                     user=None,
 

@@ -21,3 +21,5 @@ class Role(Base):
     description = Column(String(255))
 
     users = relationship("User", secondary=user_roles, back_populates="roles")
+    def __str__(self):
+        return self.name

@@ -7,4 +7,4 @@ class Group(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(255), nullable=False)
     def __str__(self):
-        return f"<Group {self.id} ({self.name})>"
+        return f"{self.name}"

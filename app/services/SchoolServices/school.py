@@ -8,6 +8,8 @@ from pydantic import BaseModel
 from typing import Optional
 
 
+
+
 #модели
 class User(BaseModel):
     uid: str
@@ -17,17 +19,22 @@ class User(BaseModel):
     role: Optional[str] = None
 
 
-
 class ChekUserResponse(BaseModel):
     message: str
     status_code: int
     user: Optional[User] = None
 
-
 class StudentResponse(BaseModel):
     uid: str
     display_name: str
     className: Optional[str] = None
+
+
+class GroupLeaderResponse(BaseModel):
+    uid: str
+    display_name: str
+    image:Optional[str] = None
+    email:Optional[str] = None
 
 class SchoolService:
     def __init__(self):
@@ -45,13 +52,14 @@ class SchoolService:
             self.response.raise_for_status()
             teachers_data = self.response.json()
             for i in teachers_data.get('value'):
+
                 if i['email'] == email:
                     return User(
-                        uid=i.get('__metadata').get('id'),
+                        uid=str(i.get('Id')),
                         display_name=i.get('name'),
                         image=i.get('image'),
                         leader_classes=str(i.get('classStr')).split(',') if i.get('classStr') else None,
-                        role='teacher'
+                        role='teacher',
                     )
             return None
         except requests.RequestException as e:
@@ -78,8 +86,6 @@ class SchoolService:
 
             )
         except Error as e:
-            print("___________________________________")
-            print(e)
             return None
         finally:
             # Всегда закрываем ресурсы в блоке finally
@@ -87,37 +93,10 @@ class SchoolService:
                 cursor.close()
             if conn and conn.is_connected():
                 conn.close()
-
-
-    def get_student_data(self, uid):
-        """Почучение студента из БД"""
-        conn = None
-        cursor = None
-        try:
-            conn = mysql.connector.connect(**self.connection_params)
-            cursor = conn.cursor(dictionary=True)
-            cursor.execute("SELECT * FROM students WHERE personid = %s AND archive=0", (uid,))
-            result = cursor.fetchone()
-            return StudentResponse(
-                uid=result.get('personid'),
-                display_name=result.get('firstName')+' '+ result.get('lastName') +' '+ result.get('patronymic'),
-                className=result.get('className'),
-            )
-        except Error as e:
-            return None
-        finally:
-            # Всегда закрываем ресурсы в блоке finally
-            if cursor:
-                cursor.close()
-            if conn and conn.is_connected():
-                conn.close()
-
-
-
     def check_user_in_school_db(self, email: str):
 
 
-        """Основной метод проверки пользователя"""
+        """Основной метод проверки пользователя для регистрации"""
         if not email:
             return {'message': 'Email не предоставлен', 'status': 400, 'user': None}
 
@@ -156,4 +135,69 @@ class SchoolService:
                     user=None,
 
                 )
+    def get_student_data(self, uid):
+        """Почучение студента из БД"""
+        conn = None
+        cursor = None
+        try:
+            conn = mysql.connector.connect(**self.connection_params)
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("SELECT * FROM students WHERE personid = %s AND archive=0", (uid,))
+            result = cursor.fetchone()
+            return StudentResponse(
+                uid=result.get('personid'),
+                display_name=result.get('firstName')+' '+ result.get('lastName') +' '+ result.get('patronymic'),
+                className=result.get('className'),
+            )
+        except Error as e:
+            return None
+        finally:
+            # Всегда закрываем ресурсы в блоке finally
+            if cursor:
+                cursor.close()
+            if conn and conn.is_connected():
+                conn.close()
+
+    def get_project_leader_by_external_id(self, external_id):
+        """Получение студента из БД"""
+        try:
+            self.response.raise_for_status()
+            teachers_data = self.response.json()
+
+            for teacher in teachers_data.get('value', []):
+
+                if external_id in teacher.get('Id'):
+                    return GroupLeaderResponse(
+                        uid=str(teacher.get('Id')),
+                        display_name=teacher.get('name'),
+                        email=teacher.get('email'),
+                        image=f"https://school1298.ru/portal/workers/image/teachers/{teacher.get('image')}"
+                    )
+            return None
+
+        except (requests.RequestException, Exception):
+            return None
+
+    def get_group_leader_by_class_name(self, group_name):
+        """Получение студента из БД"""
+        try:
+            self.response.raise_for_status()
+            teachers_data = self.response.json()
+
+            for teacher in teachers_data.get('value', []):
+                class_str = teacher.get('classStr')
+                if class_str and group_name in class_str.split(','):
+                    print('11111111111111111111111100000000000')
+                    print(teacher)
+
+                    return GroupLeaderResponse(
+                        uid=str(teacher.get('Id')),
+                        display_name=teacher.get('name'),
+                        email=teacher.get('email'),
+                        image=f"https://school1298.ru/portal/workers/image/teachers/{teacher.get('image')}"
+                    )
+            return None
+
+        except (requests.RequestException, Exception):
+            return None
 

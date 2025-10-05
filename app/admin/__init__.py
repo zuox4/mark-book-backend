@@ -168,6 +168,9 @@ class StudentAchievementAdmin(ModelView, model=Achievement):
         Achievement.teacher,
         Achievement.student_external_id,
         Achievement.event,
+        Achievement.event,
+        Achievement.stage,
+        Achievement.result
     ]
 
 # Функция настройки админки

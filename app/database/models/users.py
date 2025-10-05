@@ -7,6 +7,7 @@ from .associations import user_roles
 from ..database import Base
 from sqlalchemy import (
     Column,
+    Text,
     DateTime,
     Integer,
     String,
@@ -36,7 +37,7 @@ class User(Base):
     display_name = Column(String(255), nullable=True)
     image = Column(String(500), nullable=True)
     roles = relationship("Role", secondary=user_roles, back_populates="users")
-    about = Column(String(255), nullable=True)
+    about = Column(Text, nullable=True)
     max_link_url = Column(String(255), nullable=True)
 
     p_office = relationship("ProjectOffice", back_populates="leader")
@@ -45,3 +46,5 @@ class User(Base):
     achievements_given = relationship(
         "Achievement", back_populates="teacher", foreign_keys="Achievement.teacher_id"
     )
+    def __str__(self):
+        return self.display_name

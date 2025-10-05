@@ -24,10 +24,9 @@ async def register(
     try:
         user = RegistrationService.register_user(
             db=db,
-
             email=register_data.email,
             password=register_data.password,
-            user_data=register_data.user_data
+
         )
 
         return {

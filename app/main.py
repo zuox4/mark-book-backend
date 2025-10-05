@@ -1,12 +1,13 @@
 from fastapi import FastAPI, Depends, APIRouter
 from sqlalchemy.orm import Session
+from starlette.staticfiles import StaticFiles
 
 from app.admin import setup_admin
 from app.database.database import engine, get_db
 from app.database import Base
 from app.routes import admin_router, api_router
 from fastapi.middleware.cors import CORSMiddleware
-# Импортируем все модели чтобы они зарегистрировались
+
 from app.database.models import (
     users,
     project_offices,
@@ -15,7 +16,6 @@ from app.database.models import (
     events,
     achievements,
 )
-from app.services.resend_email_service import ResendEmailService
 
 # Создаем таблицы
 Base.metadata.create_all(bind=engine)
@@ -30,6 +30,7 @@ origins = [
     "http://localhost:8080",
     "https://your-frontend-domain.com",
 ]
+app.mount("/static/logos", StaticFiles(directory="static/logos"), name="static")
 
 app.add_middleware(
     CORSMiddleware,

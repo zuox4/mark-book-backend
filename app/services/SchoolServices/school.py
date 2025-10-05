@@ -17,11 +17,17 @@ class User(BaseModel):
     role: Optional[str] = None
 
 
+
 class ChekUserResponse(BaseModel):
     message: str
     status_code: int
     user: Optional[User] = None
 
+
+class StudentResponse(BaseModel):
+    uid: str
+    display_name: str
+    className: Optional[str] = None
 
 class SchoolService:
     def __init__(self):
@@ -60,7 +66,7 @@ class SchoolService:
         try:
             conn = mysql.connector.connect(**self.connection_params)
             cursor = conn.cursor(dictionary=True)
-            cursor.execute("SELECT * FROM students WHERE email = %s", (email,))
+            cursor.execute("SELECT * FROM students WHERE email = %s AND archive=0", (email,))
             result = cursor.fetchone()
             print(result.get('personid'))
             return User(
@@ -69,6 +75,7 @@ class SchoolService:
                 image=None,
                 leader_classes=None,
                 role='student'
+
             )
         except Error as e:
             print("___________________________________")
@@ -80,6 +87,32 @@ class SchoolService:
                 cursor.close()
             if conn and conn.is_connected():
                 conn.close()
+
+
+    def get_student_data(self, uid):
+        """Почучение студента из БД"""
+        conn = None
+        cursor = None
+        try:
+            conn = mysql.connector.connect(**self.connection_params)
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("SELECT * FROM students WHERE personid = %s AND archive=0", (uid,))
+            result = cursor.fetchone()
+            return StudentResponse(
+                uid=result.get('personid'),
+                display_name=result.get('firstName')+' '+ result.get('lastName') +' '+ result.get('patronymic'),
+                className=result.get('className'),
+            )
+        except Error as e:
+            return None
+        finally:
+            # Всегда закрываем ресурсы в блоке finally
+            if cursor:
+                cursor.close()
+            if conn and conn.is_connected():
+                conn.close()
+
+
 
     def check_user_in_school_db(self, email: str):
 
@@ -123,3 +156,4 @@ class SchoolService:
                     user=None,
 
                 )
+

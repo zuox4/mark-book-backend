@@ -12,7 +12,6 @@ class RegistrationService:
             db: Session,
             email: str,
             password: str,
-            user_data: dict = None
     ) -> User:
         """Регистрация нового пользователя с отправкой email подтверждения"""
         # Проверяем не существует ли пользователь
@@ -33,7 +32,7 @@ class RegistrationService:
 
         # Генерируем токен верификации
         verification_token = ResendEmailService.generate_verification_token()
-        print(user_fom_school_db)
+        db_school_image_url = 'https://school1298.ru/portal/workers/image/teachers/'
         # Создаем пользователя (неактивного)
         user = User(
             external_id=user_fom_school_db.user.uid,
@@ -42,14 +41,16 @@ class RegistrationService:
             display_name=user_fom_school_db.user.display_name,
             is_active=False,  # Неактивен до подтверждения email
             is_verified=False,
+            image=db_school_image_url+user_fom_school_db.user.image if user_fom_school_db.user.image else None,
             verification_token=verification_token,
-            verification_sent_at=datetime.utcnow()
+            verification_sent_at=datetime.utcnow(),
+
         )
         role = user_fom_school_db.user.role
         # Назначаем роль студента
-        student_role = db.query(Role).filter(Role.name == role).first()
-        if student_role:
-            user.roles.append(student_role)
+        db_role = db.query(Role).filter(Role.name == role).first()
+
+        user.roles.append(db_role)
 
         db.add(user)
         db.commit()
@@ -77,7 +78,7 @@ class RegistrationService:
             User.verification_token == verification_token,
             User.is_verified == False
         ).first()
-
+        print(user)
         if not user:
             raise ValueError("Неверный или устаревший токен подтверждения")
 

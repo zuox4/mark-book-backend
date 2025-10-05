@@ -19,10 +19,9 @@ class UserCreate(BaseModel):
     display_name: Optional[str] = None
 
 class RegisterRequest(BaseModel):
-
     email: str
     password: str
-    user_data: dict = None
+
 
 class LoginRequest(BaseModel):
     email: str

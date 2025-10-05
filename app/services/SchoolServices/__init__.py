@@ -1,3 +1,3 @@
-from .auth import SchoolService
+from .school import SchoolService
 
 __all__ = ['SchoolService']

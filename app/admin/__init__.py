@@ -1,6 +1,8 @@
 from sqladmin import Admin, ModelView
 from sqladmin.authentication import AuthenticationBackend
 from fastapi import Request
+from wtforms.validators import DataRequired
+
 from app.database.database import engine
 from app.database.models.users import User
 from app.database.models.roles import Role
@@ -11,6 +13,25 @@ from app.database.models.event_types import EventType
 from app.database.models.event_types import Stage
 from app.database.models.event_types import PossibleResult
 from app.database.models.achievements import Achievement
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # Простая аутентификация для админки
@@ -131,6 +152,7 @@ class StageAdmin(ModelView, model=Stage):
     column_list = [Stage.id, Stage.title, Stage.score_for_finish]
 
 
+
 # Админка для достижений
 class StudentAchievementAdmin(ModelView, model=Achievement):
     name = "Достижение"
@@ -147,7 +169,6 @@ class StudentAchievementAdmin(ModelView, model=Achievement):
         Achievement.student_external_id,
         Achievement.event,
     ]
-
 
 # Функция настройки админки
 def setup_admin(app):
@@ -170,4 +191,8 @@ def setup_admin(app):
     admin.add_view(StudentAchievementAdmin)
     admin.add_view(PossibleResultsAdmin)
 
+
     return admin
+
+
+

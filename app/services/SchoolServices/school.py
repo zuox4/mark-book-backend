@@ -7,7 +7,7 @@ import requests
 from pydantic import BaseModel
 from typing import Optional
 
-
+from sqlalchemy.dialects.mysql import aiomysql
 
 
 #модели

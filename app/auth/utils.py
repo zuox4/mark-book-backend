@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.database.models import User
@@ -44,5 +44,5 @@ def verify_token(token: str) -> Optional[dict]:
     except JWTError:
         return None
 
-def get_user_by_email(db: Session, email: str) -> Optional[User]:
+def get_user_by_email(db: AsyncSession, email: str) -> Optional[User]:
     return db.query(User).filter(User.email == email).first()

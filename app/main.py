@@ -8,18 +8,6 @@ from app.database import Base
 from app.routes import admin_router, api_router
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.database.models import (
-    users,
-    project_offices,
-    groups,
-    event_types,
-    events,
-    achievements,
-)
-
-# Создаем таблицы
-Base.metadata.create_all(bind=engine)
-
 app = FastAPI(
     title="Educational Achievement Platform",
     description="API для управления образовательными достижениями",
@@ -30,6 +18,7 @@ origins = [
     "http://localhost:8080",
     "https://your-frontend-domain.com",
 ]
+
 app.mount("/static/logos", StaticFiles(directory="static/logos"), name="static")
 
 app.add_middleware(

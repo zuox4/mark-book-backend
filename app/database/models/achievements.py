@@ -9,7 +9,7 @@ class Achievement(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     teacher_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    student_external_id = Column(String(100), nullable=False, index=True)
+    student_id = Column(Integer, ForeignKey("users.id"), nullable=False)  # ← вместо student_external_id
 
     event_id = Column(
         Integer, ForeignKey("events.id", ondelete="CASCADE"), nullable=False
@@ -28,7 +28,11 @@ class Achievement(Base):
     teacher = relationship(
         "User", back_populates="achievements_given", foreign_keys=[teacher_id]
     )
-
+    student = relationship(
+        "User",
+        back_populates="achievements_received",
+        foreign_keys=[student_id]
+    )
     stage = relationship("Stage", back_populates="achievements")
     event = relationship("Event", back_populates="achievements")
     result = relationship("PossibleResult", back_populates="achievements")

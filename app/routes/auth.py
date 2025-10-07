@@ -102,18 +102,19 @@ async def login(
         db: Session = Depends(get_db)
 ):
     """Вход в систему"""
-    print(login_data)
+
     user = UserService.authenticate_user(db, login_data.email, login_data.password)
     if not user:
         raise HTTPException(status_code=401, detail="Неверные логин или пароль!")
-
+    # Проверяем пройдена ли регистрация пользователем
+    if user.requires_password:
+        raise HTTPException(status_code=401, detail="Необходимо пройти регистрацию")
     # Проверяем подтвержден ли email
     if not user.is_verified:
         raise HTTPException(
             status_code=403,
             detail="Email не подтвержден. Пожалуйста проверьте эл.почту"
         )
-
     # Проверяем активен ли аккаунт
     if not user.is_active:
         raise HTTPException(
@@ -124,9 +125,6 @@ async def login(
     # Обновляем время последнего входа
     user.last_login_at = datetime.datetime.utcnow()
     db.commit()
-
-
-
     # Создаем токен
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(

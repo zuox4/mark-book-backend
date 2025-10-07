@@ -16,24 +16,6 @@ from app.database.models.achievements import Achievement
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # Простая аутентификация для админки
 class AdminAuth(AuthenticationBackend):
     async def login(self, request: Request) -> bool:
@@ -61,7 +43,7 @@ class UserAdmin(ModelView, model=User):
     name_plural = "Пользователи"
     icon = "fa-solid fa-user"
 
-    column_list = [User.id, User.external_id, User.email, User.display_name, User.is_active]
+    column_list = [User.id, User.external_id, User.verification_token, User.email, User.display_name, User.is_active, User.roles, User.groups_leader, User.requires_password]
     column_searchable_list = [User.email, User.display_name]
     column_sortable_list = [User.id, User.email]
     form_columns = [
@@ -71,6 +53,7 @@ class UserAdmin(ModelView, model=User):
         User.is_active,
         User.about,
         User.roles,
+
     ]
 
 
@@ -166,7 +149,7 @@ class StudentAchievementAdmin(ModelView, model=Achievement):
     ]
     form_columns = [
         Achievement.teacher,
-        Achievement.student_external_id,
+        Achievement.student,
         Achievement.event,
         Achievement.event,
         Achievement.stage,

@@ -63,8 +63,10 @@ class UserService:
             return None
         if not verify_password(password, user.password_hash):
             return None
-        if not user.is_active:
-            return None
+        # if not user.is_active:
+        #     return None
+        # if user.requires_password:
+        #     return None
         return user
 
     # @staticmethod

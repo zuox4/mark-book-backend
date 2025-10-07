@@ -123,120 +123,192 @@ class ResendEmailService:
         """
         Создание красивого HTML письма для подтверждения
         """
-        return f"""
-        <!DOCTYPE html>
-        <html lang="ru">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Подтверждение email</title>
-            <style>
-                body {{
-                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                    line-height: 1.6;
-                    color: #333;
-                    max-width: 600px;
-                    margin: 0 auto;
-                    padding: 20px;
-                    background-color: #f9f9f9;
-                }}
-                .container {{
-                    background: white;
-                    border-radius: 10px;
-                    padding: 40px;
-                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                }}
-                .header {{
-                    text-align: center;
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    color: white;
-                    padding: 30px;
-                    border-radius: 10px 10px 0 0;
-                    margin: -40px -40px 30px -40px;
-                }}
-                .logo {{
-                    font-size: 28px;
-                    font-weight: bold;
-                    margin-bottom: 10px;
-                }}
-                .button {{
-                    display: inline-block;
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    color: white;
-                    padding: 14px 28px;
-                    text-decoration: none;
-                    border-radius: 6px;
-                    font-weight: 600;
-                    font-size: 16px;
-                    margin: 20px 0;
-                    text-align: center;
-                }}
-                .verification-code {{
-                    background: #f8f9fa;
-                    border: 1px solid #e9ecef;
-                    border-radius: 6px;
-                    padding: 15px;
-                    margin: 20px 0;
-                    font-family: 'Courier New', monospace;
-                    font-size: 14px;
-                    word-break: break-all;
-                }}
-                .footer {{
-                    text-align: center;
-                    margin-top: 30px;
-                    padding-top: 20px;
-                    border-top: 1px solid #eee;
-                    color: #666;
-                    font-size: 14px;
-                }}
-                @media (max-width: 600px) {{
-                    .container {{
-                        padding: 20px;
-                    }}
-                    .header {{
-                        margin: -20px -20px 20px -20px;
-                        padding: 20px;
-                    }}
-                }}
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="header">
-                    <div class="logo">🎓 Школа 1298</div>
-                    <p>Образовательная платформа</p>
-                </div>
+        return f"""<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация в системе учета достижений</title>
+    <style>
+        body {{
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            margin: 0;
+            padding: 0;
+            background-color: #ffffff;
+        }}
+        .container {{
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }}
+        .header {{
+            background: #043951;
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }}
+        .logo {{
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: white;
+        }}
+        .subtitle {{
+            font-size: 18px;
+            opacity: 0.9;
+            margin-bottom: 0;
+            color: white;
+        }}
+        .content {{
+            padding: 40px 30px;
+            color: #333333;
+            background: white;
+        }}
+        .greeting {{
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 25px;
+            color: #043951;
+        }}
+        .button {{
+            display: inline-block;
+            background: #00a713;
+            color: white;
+            padding: 16px 35px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 18px;
+            margin: 25px 0;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 167, 19, 0.3);
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }}
+        .button:hover {{
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 167, 19, 0.4);
+        }}
+        .verification-code {{
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            word-break: break-all;
+            text-align: center;
+            color: #495057;
+        }}
+        .footer {{
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid #e9ecef;
+            color: #6c757d;
+            font-size: 14px;
+            background: white;
+        }}
+        .highlight {{
+            background: linear-gradient(120deg, #e3f2fd 0%, #e3f2fd 100%);
+            padding: 15px;
+            border-left: 4px solid #2196f3;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }}
+        @media (max-width: 600px) {{
+            .container {{
+                margin: 10px;
+            }}
+            .content {{
+                padding: 25px 20px;
+            }}
+            .header {{
+                padding: 30px 20px;
+            }}
+            .logo {{
+                font-size: 28px;
+            }}
+        }}
+        /* Отключаем темную тему */
+        @media (prefers-color-scheme: dark) {{
+            body {{
+                background-color: #ffffff;
+                color: #333333;
+            }}
+            .container {{
+                background: white;
+            }}
+            .content {{
+                background: white;
+                color: #333333;
+            }}
+            .footer {{
+                background: white;
+                color: #6c757d;
+            }}
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">Школа 1298 «Профиль Курикно»</div>
+            <div class="subtitle">Регистрация в системе учета достижений</div>
+        </div>
 
-                <h2>Здравствуйте{', ' + user_name if user_name else ''}!</h2>
+        <div class="content">
+            <div class="greeting">Здравствуйте, {user_name}!</div>
 
-                <p>Благодарим вас за регистрацию в образовательной платформе <strong>{settings.SCHOOL_NAME}</strong>.</p>
+            <p>Рады Вашей регистрации в электронной системе учета достижений учеников профильных классов Школы 1298. Платформа является электронной зачетной книжкой и поможет отслеживать ключевые мероприятия профиля и Ваши достижения за 10-11 класс.</p>
 
-                <p>Для завершения регистрации и активации вашего аккаунта, пожалуйста, подтвердите ваш email адрес:</p>
-
-                <div style="text-align: center;">
-                    <a href="{verification_url}" class="button">
-                        ✅ Подтвердить Email
-                    </a>
-                </div>
-
-                <p>Или скопируйте и вставьте в браузер следующую ссылку:</p>
-
-                <div class="verification-code">
-                    {verification_url}
-                </div>
-
-                <p><strong>⚠️ Важно:</strong> Ссылка действительна в течение 24 часов.</p>
-
-                <p>Если вы не регистрировались в нашей системе, пожалуйста, проигнорируйте это письмо.</p>
-
-                <div class="footer">
-                    <p>С уважением,<br><strong>Команда {settings.SCHOOL_NAME}</strong></p>
-                    <p>📧 Это письмо сгенерировано автоматически. Пожалуйста, не отвечайте на него.</p>
-                </div>
+            <div class="highlight">
+                <strong>📚 Основные возможности платформы:</strong><br>
+                • Электронная зачетная книжка<br>
+                • Учет достижений и мероприятий<br>
+                • Отслеживание прогресса обучения<br>
+                • Доступ к материалам профильных классов
             </div>
-        </body>
-        </html>
-        """
+
+            <p>Для завершения регистрации необходимо подтвердить e-mail адрес:</p>
+
+            <div style="text-align: center;">
+                <a href="{verification_url}" class="button">
+                    ✅ Подтвердить Email
+                </a>
+            </div>
+
+            <p>Или скопируйте и вставьте в браузер следующую ссылку:</p>
+
+            <div class="verification-code">
+                {verification_url}
+            </div>
+
+            <p><strong>⏰ Ссылка действительна в течение 24 часов.</strong></p>
+
+            <p>Если вы не регистрировались в нашей системе, пожалуйста, проигнорируйте это письмо.</p>
+
+            <div class="footer">
+                <p>С уважением,<br>
+                <strong>Команда Школы 1298 «Профиль Курикно»</strong></p>
+                <p>📧 Это письмо сгенерировано автоматически. Пожалуйста, не отвечайте на него.</p>
+                <p style="font-size: 12px; margin-top: 10px; color: #adb5bd;">
+                    Школа 1298 © 2024. Все права защищены.
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>"""
+
 
     @staticmethod
     def _create_welcome_email_html(user_name: str) -> str:

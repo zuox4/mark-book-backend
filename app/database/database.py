@@ -1,30 +1,63 @@
 import os
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, DeclarativeBase
+from sqlalchemy.pool import NullPool
 from dotenv import load_dotenv
 from app.core.config import settings
+
 # Загружаем переменные окружения
 load_dotenv()
 
-DATABASE_URL = settings.DATABASE_URL
+class Base(DeclarativeBase):
+    """Базовый класс для всех моделей"""
+    pass
 
-# Создаем engine
-if DATABASE_URL.startswith("sqlite"):
-    engine = create_engine(
-        DATABASE_URL,
-        connect_args={"check_same_thread": False},
-        echo=True  # Включаем логирование SQL для отладки
-    )
-else:
-    engine = create_engine(DATABASE_URL)
+# URL для подключения
+DATABASE_URL = f"postgresql://{settings.DB_USER}:{settings.DB_PASSWORD}@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}"
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
+# Создаем синхронный движок с оптимизациями
+engine = create_engine(
+    DATABASE_URL,
+    # echo=settings.DEBUG,  # Логировать SQL только в debug режиме
+    poolclass=NullPool,  # Для избежания проблем с connection pool
+    pool_pre_ping=True,  # Проверять соединение перед использованием
+    pool_recycle=3600,  # Пересоздавать соединения каждый час
+)
+
+# Создаем синхронную фабрику сессий
+SessionLocal = sessionmaker(
+    engine,
+    expire_on_commit=False,  # Объекты не expire после commit
+    autoflush=False,
+    autocommit=False,
+)
 
 def get_db():
+    """
+    Синхронная зависимость для получения сессии БД
+    Использование:
+        @router.get("/")
+        def endpoint(db: Session = Depends(get_db)):
+    """
     db = SessionLocal()
     try:
         yield db
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
     finally:
         db.close()
+
+def create_tables():
+    """Создание всех таблиц (для инициализации)"""
+    Base.metadata.create_all(bind=engine)
+
+def drop_tables():
+    """Удаление всех таблиц (для тестов)"""
+    Base.metadata.drop_all(bind=engine)
+
+# Утилиты для работы с БД
+def get_sync_session():
+    """Получить синхронную сессию (для ручного управления)"""
+    return SessionLocal()

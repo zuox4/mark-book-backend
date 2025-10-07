@@ -13,7 +13,7 @@ class EventType(Base):
 
     events = relationship("Event", back_populates="event_type")
     stages = relationship("Stage", back_populates="event_type")
-    leader_uid = Column(String(255), ForeignKey("users.id"))
+    leader_uid = Column(Integer, ForeignKey("users.id"))
 
     leader = relationship("User", back_populates="event_types")
 

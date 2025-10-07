@@ -8,6 +8,7 @@ from .event_types import Stage
 from .event_types import PossibleResult
 from .achievements import Achievement
 from .email import EmailLog
+from .associations import p_office_event_association, p_office_group_association
 
 __all__ = [
     "User",
@@ -20,4 +21,6 @@ __all__ = [
     "PossibleResult",
     "Achievement",
     "EmailLog",
+    "p_office_event_association",
+    "p_office_group_association"
 ]

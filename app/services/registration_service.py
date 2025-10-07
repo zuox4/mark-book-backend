@@ -20,48 +20,27 @@ class RegistrationService:
         ).first()
 
 
-        if existing_user:
+        if existing_user and not existing_user.requires_password:
             raise ValueError("Пользователь с таким email уже существует")
-
-        user_fom_school_db = SchoolService().check_user_in_school_db(email)
-
-        if SchoolService().check_user_in_school_db(email).status_code == 400:
+        if not existing_user:
             raise ValueError("Пользователь с таким email не найден в базе данных школы")
-        if SchoolService().check_user_in_school_db(email).status_code == 500:
-            raise ValueError("Ошибка при проверке Email")
+
 
         # Генерируем токен верификации
         verification_token = ResendEmailService.generate_verification_token()
-        db_school_image_url = 'https://school1298.ru/portal/workers/image/teachers/'
-        # Создаем пользователя (неактивного)
-        user = User(
-            external_id=user_fom_school_db.user.uid,
-            email=email,
-            password_hash=get_password_hash(password),
-            display_name=user_fom_school_db.user.display_name,
-            is_active=False,  # Неактивен до подтверждения email
-            is_verified=False,
-            image=db_school_image_url+user_fom_school_db.user.image if user_fom_school_db.user.image else None,
-            verification_token=verification_token,
-            verification_sent_at=datetime.utcnow(),
 
-        )
-        role = user_fom_school_db.user.role
-        # Назначаем роль студента
-        db_role = db.query(Role).filter(Role.name == role).first()
-
-        user.roles.append(db_role)
-
-        db.add(user)
+        existing_user.password_hash=get_password_hash(password),
+        existing_user.verification_token=verification_token,
+        existing_user.verification_sent_at=datetime.utcnow(),
         db.commit()
-        db.refresh(user)
+        db.refresh(existing_user)
 
         # Отправляем email подтверждения
         email_sent = ResendEmailService.send_verification_email(
             db=db,
             email=email,
             verification_token=verification_token,
-            user_name=user.display_name
+            user_name=existing_user.display_name
         )
 
         if not email_sent:
@@ -69,7 +48,7 @@ class RegistrationService:
         else:
             print(f"📧 Email подтверждения отправлен на: {email}")
 
-        return user
+        return existing_user
 
     @staticmethod
     def verify_email(db: Session, verification_token: str) -> User:
@@ -78,7 +57,7 @@ class RegistrationService:
             User.verification_token == verification_token,
             User.is_verified == False
         ).first()
-        print(user)
+
         if not user:
             raise ValueError("Неверный или устаревший токен подтверждения")
 
@@ -90,14 +69,13 @@ class RegistrationService:
         # Активируем пользователя
         user.is_active = True
         user.is_verified = True
+        user.requires_password = False
         user.email_verified_at = datetime.utcnow()
         user.verification_token = None  # Удаляем использованный токен
-
         db.commit()
         db.refresh(user)
 
         ResendEmailService.send_welcome_email(
-
             email=user.email,
             user_name=user.display_name
         )

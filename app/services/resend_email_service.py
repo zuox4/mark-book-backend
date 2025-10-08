@@ -407,17 +407,34 @@ class SMTPEmailService:
                     padding: 20px;
                 }}
                 .header {{
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    background: #043951;
                     color: white;
-                    padding: 30px;
+                    padding: 40px 30px;
                     text-align: center;
-                    border-radius: 10px 10px 0 0;
+                    position: relative;
+                    overflow: hidden;
                 }}
                 .content {{
                     background: white;
                     padding: 30px;
                     border-radius: 0 0 10px 10px;
                     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                }}
+            @media (prefers-color-scheme: dark) {{
+                body {{
+                    background-color: #ffffff;
+                    color: #333333;
+                }}
+                .container {{
+                    background: white;
+                }}
+                .content {{
+                    background: white;
+                    color: #333333;
+                }}
+                .footer {{
+                    background: white;
+                    color: #6c757d;
                 }}
             </style>
         </head>

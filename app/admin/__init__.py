@@ -104,9 +104,15 @@ class ProjectOfficeAdmin(ModelView, model=ProjectOffice):
     name_plural = "Проектные офисы"
     icon = "fa-solid fa-building"
 
-    column_list = [ProjectOffice.id, ProjectOffice.title, ProjectOffice.is_active]
+    column_list = [ProjectOffice.title, ProjectOffice.leader, ProjectOffice.logo_url, ProjectOffice.description]
     column_searchable_list = [ProjectOffice.title]
-
+    # Настройка формы через form_ajax_refs (если поддерживается)
+    form_ajax_refs = {
+        'leader': {
+            'fields': [User.display_name],
+            'order_by': User.display_name,
+        }
+    }
 
 # Админка для групп
 class GroupAdmin(ModelView, model=Group):

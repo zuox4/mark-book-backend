@@ -3,9 +3,10 @@ from sqlalchemy.orm import Session
 from fastapi import Depends
 
 from app.database import get_db
+from app.database.models import EventType, Stage
 from app.services.sync_service import TeacherSyncService
 from app.services.sync_service import StudentSyncService
-
+from sqlalchemy.orm import joinedload
 router = APIRouter()
 
 
@@ -28,3 +29,15 @@ def sync_teachers(db: Session = Depends(get_db)):
     return {"message": f"{student_result}"}
 
 
+@router.get("/all_event_types")
+def get_all_events(db: Session = Depends(get_db)):
+    events = (
+        db.query(EventType)
+        .options(
+            joinedload(EventType.stages).joinedload(Stage.possible_results),
+            joinedload(EventType.leader)
+        )
+        .all()
+    )
+
+    return events

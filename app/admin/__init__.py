@@ -132,7 +132,7 @@ class StageAdmin(ModelView, model=Stage):
     name_plural = "Этапы"
     icon = "fa-solid fa-stairs"
 
-    column_list = [Stage.id, Stage.title, Stage.score_for_finish]
+    column_list = [Stage.id, Stage.title, Stage.min_score_for_finished]
 
 
 
@@ -151,10 +151,21 @@ class StudentAchievementAdmin(ModelView, model=Achievement):
         Achievement.teacher,
         Achievement.student,
         Achievement.event,
-        Achievement.event,
         Achievement.stage,
         Achievement.result
     ]
+
+    # Настройка формы через form_ajax_refs (если поддерживается)
+    form_ajax_refs = {
+        'student': {
+            'fields': [User.display_name],
+            'order_by': User.display_name,
+        },
+        'teacher': {
+            'fields': [User.display_name],
+            'order_by': User.display_name,
+        }
+    }
 
 # Функция настройки админки
 def setup_admin(app):

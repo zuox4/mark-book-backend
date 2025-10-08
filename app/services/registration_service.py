@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 from app.database.models.users import User
 from app.database.models.roles import Role
 from app.auth.utils import get_password_hash, verify_password
-from app.services.resend_email_service import ResendEmailService
-from app.services.SchoolServices import SchoolService
+from app.services.resend_email_service import email_service
+
 class RegistrationService:
 
     @staticmethod
@@ -27,7 +27,7 @@ class RegistrationService:
 
 
         # Генерируем токен верификации
-        verification_token = ResendEmailService.generate_verification_token()
+        verification_token = email_service.generate_verification_token()
 
         existing_user.password_hash=get_password_hash(password),
         existing_user.verification_token=verification_token,
@@ -36,7 +36,7 @@ class RegistrationService:
         db.refresh(existing_user)
 
         # Отправляем email подтверждения
-        email_sent = ResendEmailService.send_verification_email(
+        email_sent = email_service.send_verification_email(
             db=db,
             email=email,
             verification_token=verification_token,
@@ -75,7 +75,8 @@ class RegistrationService:
         db.commit()
         db.refresh(user)
 
-        ResendEmailService.send_welcome_email(
+        email_service.send_welcome_email(
+            db,
             email=user.email,
             user_name=user.display_name
         )
@@ -95,14 +96,14 @@ class RegistrationService:
             raise ValueError("Пользователь не найден или email уже подтвержден")
 
         # Генерируем новый токен
-        new_token = ResendEmailService.generate_verification_token()
+        new_token = email_service.generate_verification_token()
 
         user.verification_token = new_token
         user.verification_sent_at = datetime.utcnow()
         db.commit()
 
         # Отправляем email
-        success = ResendEmailService.send_verification_email(
+        success = email_service.send_verification_email(
             db,
             email=email,
             verification_token=new_token,

@@ -32,4 +32,14 @@ class Settings:
     DB_NAME: str = os.getenv("DB_NAME")  # Например: "myapp_db"
     DB_USER: str = os.getenv("DB_USER")  # Например: "remote_user"
     DB_PASSWORD : str = os.getenv("DB_PASSWORD")  # Например: "secure_password123"
+
+    # SMTP Settings
+    SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
+    SMTP_PORT = int(os.getenv("SMTP_PORT", 587))
+    SMTP_USERNAME = os.getenv("SMTP_USERNAME", "")
+    SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
+    SMTP_FROM_EMAIL = os.getenv("SMTP_FROM_EMAIL", "noreply@school1298.ru")
+    SMTP_USE_TLS = os.getenv("SMTP_USE_TLS", "True").lower() == "true"
+
+
 settings = Settings()

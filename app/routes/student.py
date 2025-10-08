@@ -114,7 +114,7 @@ def get_record_book_marks(
         db: Session = Depends(get_db)
 ):
     try:
-        mark_book = get_student_record_book_marks_simple(db, current_user.external_id, current_user.group_name)
+        mark_book = get_student_record_book_marks_simple(db, current_user.id, current_user.group_name)
     except HTTPException as err:
         raise HTTPException(status_code=404, detail=str(err))
     return mark_book

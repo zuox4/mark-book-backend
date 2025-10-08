@@ -1,62 +1,69 @@
-import resend
+import smtplib
 import secrets
-
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.database.models import EmailLog
 
-# Инициализация Resend
-resend.api_key = settings.RESEND_API_KEY
 
+class SMTPEmailService:
 
-class ResendEmailService:
+    def __init__(self):
+        self.smtp_server = settings.SMTP_SERVER
+        self.smtp_port = settings.SMTP_PORT
+        self.smtp_username = settings.SMTP_USERNAME
+        self.smtp_password = settings.SMTP_PASSWORD
+        self.use_tls = settings.SMTP_USE_TLS
 
-    @staticmethod
     def send_verification_email(
-            db:Session,
+            self,
+            db: Session,
             email: str,
             verification_token: str,
             user_name: str = None
     ) -> bool:
         """
-        Отправка email с ссылкой подтверждения через Resend
+        Отправка email с ссылкой подтверждения через SMTP
         """
         try:
             verification_url = f"{settings.FRONTEND_URL}/verify-email?token={verification_token}"
 
-            # Создаем HTML контент
-            html_content = ResendEmailService._create_verification_email_html(
+            # Создаем HTML и текстовый контент
+            html_content = self._create_verification_email_html(
+                user_name=user_name,
+                verification_url=verification_url
+            )
+            text_content = self._create_verification_email_text(
                 user_name=user_name,
                 verification_url=verification_url
             )
 
-            # Параметры для отправки
-            params = {
-                "from": f"{settings.SCHOOL_NAME} <{settings.RESEND_FROM_EMAIL}>",
-                "to": [email],
-                "subject": f"Подтверждение регистрации - {settings.SCHOOL_NAME}",
-                "html": html_content,
-                "reply_to": f"support@{settings.SCHOOL_DOMAIN}",
-                "tags": [
-                    {
-                        "name": "category",
-                        "value": "email_verification"
-                    },
-                    {
-                        "name": "project",
-                        "value": "school_platform"
-                    }
-                ]
-            }
+            # Создаем сообщение
+            msg = MIMEMultipart('alternative')
+            msg['Subject'] = f"Подтверждение регистрации - {settings.SCHOOL_NAME}"
+            msg['From'] = f"{settings.SCHOOL_NAME} <{settings.SMTP_FROM_EMAIL}>"
+            msg['To'] = email
+            msg['Reply-To'] = f"support@{settings.SCHOOL_DOMAIN}"
+
+            # Добавляем текстовую и HTML версии
+            part1 = MIMEText(text_content, 'plain', 'utf-8')
+            part2 = MIMEText(html_content, 'html', 'utf-8')
+            msg.attach(part1)
+            msg.attach(part2)
 
             # Отправка email
-            result = resend.Emails.send(params)
+            with smtplib.SMTP(self.smtp_server, self.smtp_port) as server:
+                if self.use_tls:
+                    server.starttls()
+                server.login(self.smtp_username, self.smtp_password)
+                server.send_message(msg)
 
             # Логируем успешную отправку
             email_log = EmailLog(
                 email=email,
-                subject=params["subject"],
+                subject=msg['Subject'],
                 template_name="email_verification",
                 status="sent"
             )
@@ -64,7 +71,6 @@ class ResendEmailService:
             db.commit()
 
             print(f"✅ Verification email sent to: {email}")
-            print(f"📧 Email ID: {result['id']}")
             return True
 
         except Exception as e:
@@ -78,12 +84,13 @@ class ResendEmailService:
                 status="failed",
                 error_message=str(e)
             )
-            # db.add(email_log)
-            # db.commit()
+            db.add(email_log)
+            db.commit()
             return False
 
-    @staticmethod
     def send_welcome_email(
+            self,
+            db: Session,
             email: str,
             user_name: str = None
     ) -> bool:
@@ -91,37 +98,91 @@ class ResendEmailService:
         Отправка приветственного email после подтверждения
         """
         try:
-            html_content = ResendEmailService._create_welcome_email_html(user_name)
+            # Создаем HTML и текстовый контент
+            html_content = self._create_welcome_email_html(user_name)
+            text_content = self._create_welcome_email_text(user_name)
 
-            params = {
-                "from": f"{settings.SCHOOL_NAME} <{settings.RESEND_FROM_EMAIL}>",
-                "to": [email],
-                "subject": f"Добро пожаловать в {settings.SCHOOL_NAME}!",
-                "html": html_content,
-            }
+            # Создаем сообщение
+            msg = MIMEMultipart('alternative')
+            msg['Subject'] = f"Добро пожаловать в {settings.SCHOOL_NAME}!"
+            msg['From'] = f"{settings.SCHOOL_NAME} <{settings.SMTP_FROM_EMAIL}>"
+            msg['To'] = email
 
-            result = resend.Emails.send(params)
-            #
+            # Добавляем текстовую и HTML версии
+            part1 = MIMEText(text_content, 'plain', 'utf-8')
+            part2 = MIMEText(html_content, 'html', 'utf-8')
+            msg.attach(part1)
+            msg.attach(part2)
+
+            # Отправка email
+            with smtplib.SMTP(self.smtp_server, self.smtp_port) as server:
+                if self.use_tls:
+                    server.starttls()
+                server.login(self.smtp_username, self.smtp_password)
+                server.send_message(msg)
+
+            # Логируем успешную отправку
             email_log = EmailLog(
                 email=email,
-                subject=params["subject"],
+                subject=msg['Subject'],
                 template_name="welcome_email",
                 status="sent"
             )
-            # db.add(email_log)
-            # db.commit()
+            db.add(email_log)
+            db.commit()
 
             print(f"✅ Welcome email sent to: {email}")
             return True
 
         except Exception as e:
             print(f"❌ Failed to send welcome email: {e}")
+
+            # Логируем ошибку
+            email_log = EmailLog(
+                email=email,
+                subject="Welcome Email",
+                template_name="welcome_email",
+                status="failed",
+                error_message=str(e)
+            )
+            db.add(email_log)
+            db.commit()
             return False
 
-    @staticmethod
-    def _create_verification_email_html(user_name: str, verification_url: str) -> str:
+    def _create_verification_email_text(self, user_name: str, verification_url: str) -> str:
         """
-        Создание красивого HTML письма для подтверждения
+        Создание текстовой версии письма для подтверждения
+        """
+        return f"""
+Здравствуйте, {user_name}!
+
+Рады Вашей регистрации в электронной системе учета достижений учеников профильных классов Школы 1298. 
+Платформа является электронной зачетной книжкой и поможет отслеживать ключевые мероприятия профиля 
+и Ваши достижения за 10-11 класс.
+
+Основные возможности платформы:
+• Электронная зачетная книжка
+• Учет достижений и мероприятий
+• Отслеживание прогресса обучения
+• Доступ к материалам профильных классов
+
+Для завершения регистрации необходимо подтвердить e-mail адрес, перейдя по ссылке:
+{verification_url}
+
+⏰ Ссылка действительна в течение 24 часов.
+
+Если вы не регистрировались в нашей системе, пожалуйста, проигнорируйте это письмо.
+
+С уважением,
+Команда Школы 1298 «Профиль Курикно»
+
+📧 Это письмо сгенерировано автоматически. Пожалуйста, не отвечайте на него.
+Школа 1298 © 2024. Все права защищены.
+"""
+
+    def _create_verification_email_html(self, user_name: str, verification_url: str) -> str:
+        """
+        Создание HTML письма для подтверждения (оставляем ваш существующий HTML)
         """
         return f"""<!DOCTYPE html>
 <html lang="ru">
@@ -309,11 +370,27 @@ class ResendEmailService:
 </body>
 </html>"""
 
-
-    @staticmethod
-    def _create_welcome_email_html(user_name: str) -> str:
+    def _create_welcome_email_text(self, user_name: str) -> str:
         """
-        Создание приветственного письма
+        Создание текстовой версии приветственного письма
+        """
+        return f"""
+Здравствуйте{', ' + user_name if user_name else ''}!
+
+Мы рады приветствовать вас в образовательной платформе {settings.SCHOOL_NAME}!
+
+Теперь вам доступны все возможности системы:
+• 📊 Просмотр достижений в мероприятиях и олимпиадах
+
+Если у вас возникнут вопросы, обращайтесь к администратору.
+
+С уважением,
+Команда {settings.SCHOOL_NAME}
+"""
+
+    def _create_welcome_email_html(self, user_name: str) -> str:
+        """
+        Создание приветственного письма (оставляем ваш существующий HTML)
         """
         return f"""
         <!DOCTYPE html>
@@ -374,3 +451,7 @@ class ResendEmailService:
     def generate_verification_token() -> str:
         """Генерация безопасного токена для верификации"""
         return secrets.token_urlsafe(32)
+
+
+# Создаем экземпляр сервиса для удобного использования
+email_service = SMTPEmailService()

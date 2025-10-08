@@ -1,7 +1,7 @@
 from sqlalchemy.orm import relationship
 
 from ..database import Base
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey,Text
 
 
 class EventType(Base):
@@ -9,11 +9,13 @@ class EventType(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(255), unique=True, nullable=False, index=True)
-    # description = Column(Text)
+    description = Column(Text)
 
     events = relationship("Event", back_populates="event_type")
     stages = relationship("Stage", back_populates="event_type")
-    leader_uid = Column(Integer, ForeignKey("users.id"))
+    leader_id = Column(Integer, ForeignKey("users.id"))
+    min_stages_for_completion = Column(Integer, default=0)
+
 
     leader = relationship("User", back_populates="event_types")
 
@@ -29,9 +31,10 @@ class Stage(Base):
         Integer, ForeignKey("event_types.id", ondelete="CASCADE"), nullable=False
     )
     title = Column(String(255), nullable=False)
-    score_for_finish = Column(Integer, default=0)
-
     event_type = relationship("EventType", back_populates="stages")
+    stage_order = Column(Integer, default=0)  # Порядок этапов
+    min_score_for_finished = Column(Integer, default=0)
+
     possible_results = relationship(
         "PossibleResult", back_populates="stage", cascade="all, delete-orphan"
     )
@@ -48,9 +51,8 @@ class PossibleResult(Base):
     stage_id = Column(
         Integer, ForeignKey("stages.id", ondelete="CASCADE"), nullable=False
     )
+    points_for_done = Column(Integer, default=0)
     title = Column(String(255), nullable=False)
-    # description = Column(Text)
-
     stage = relationship("Stage", back_populates="possible_results")
     achievements = relationship("Achievement", back_populates="result")
 

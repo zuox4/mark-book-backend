@@ -12,11 +12,11 @@ class Event(Base):
     event_type_id = Column(
         Integer, ForeignKey("event_types.id", ondelete="CASCADE"), nullable=False
     )
+    description = Column(String(255), nullable=True, index=True)
     academic_year = Column(String(9))
     date_start = Column(Date, nullable=True)
     date_end = Column(Date, nullable=True)
     is_active = Column(Boolean, default=True)
-
     event_type = relationship("EventType", back_populates="events")
     achievements = relationship("Achievement", back_populates="event")
 

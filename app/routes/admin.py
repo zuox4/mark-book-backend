@@ -11,7 +11,7 @@ router = APIRouter()
 
 
 @router.get("/sync_teachers")
-async def sync_teachers(db: Session = Depends(get_db)):
+def sync_teachers(db: Session = Depends(get_db)):
     teacher_service = TeacherSyncService()
     teacher_result = teacher_service.sync_teachers(db)
 
@@ -20,7 +20,7 @@ async def sync_teachers(db: Session = Depends(get_db)):
 
 
 @router.get("/sync_students")
-async def sync_teachers(db: Session = Depends(get_db)):
+def sync_teachers(db: Session = Depends(get_db)):
 
     sync_service = StudentSyncService()
     student_result = sync_service.sync_students(db)

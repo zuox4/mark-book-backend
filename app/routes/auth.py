@@ -16,7 +16,7 @@ from app.services.user_service import UserService
 router = APIRouter()
 
 @router.post("/register", response_model=dict)
-async def register(
+def register(
         register_data: RegisterRequest,
         db: Session = Depends(get_db)
 ):
@@ -41,7 +41,7 @@ async def register(
 
 
 @router.post("/verify-email", response_model=dict)
-async def verify_email(
+def verify_email(
         verify_data: VerifyEmailRequest,
         db: Session = Depends(get_db)
 ):
@@ -97,7 +97,7 @@ async def verify_email(
 
 
 @router.post("/login", response_model=dict)
-async def login(
+def login(
         login_data: LoginRequest,
         db: Session = Depends(get_db)
 ):
@@ -147,7 +147,7 @@ async def login(
     }
 
 @router.get("/me", response_model=UserResponse)
-async def get_current_user(
+def get_current_user(
         current_user: User = Depends(get_current_active_user)
 ):
     print(current_user.roles)

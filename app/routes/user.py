@@ -17,10 +17,8 @@ from app.auth.models import RegisterRequest, VerifyEmailRequest, LoginRequest, U
 router = APIRouter()
 
 @router.get("/{id}", response_model=dict)
-async def get_user_main_data(current_user: User = Depends(get_current_active_user),  db: Session = Depends(get_db)):
-    print(current_user.display_name)
+def get_user_main_data(current_user: User = Depends(get_current_active_user),  db: Session = Depends(get_db)):
     roles = [i.name for i in current_user.roles]
-    print(current_user.image)
 
     return {
         "id": current_user.id,
@@ -31,16 +29,3 @@ async def get_user_main_data(current_user: User = Depends(get_current_active_use
         }
 
 
-@router.get("/{id}", response_model=dict)
-async def get_project_office_info(current_user: User = Depends(get_current_active_user),  db: Session = Depends(get_db)):
-    print(current_user.display_name)
-    roles = [i.name for i in current_user.roles]
-    print(current_user.image)
-
-    return {
-        "id": current_user.id,
-        "display_name": current_user.display_name,
-        "email": current_user.email,
-        "image": current_user.image,
-        "roles": roles,
-        }

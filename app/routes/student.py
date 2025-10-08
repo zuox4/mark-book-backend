@@ -24,7 +24,7 @@ class Event(BaseModel):
 class ProjectOfficeResponse(BaseModel):
     title: str
     description: str
-    logo_url: str
+    logo_url: Optional[str] = None
     accessible_events: List[Event]
 
 class GroupLeaderResponse(BaseModel):
@@ -49,11 +49,12 @@ def get_student_info(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ) -> StudentInfoResponse:
-    student = SchoolService().get_student_data(current_user.external_id)
 
+    if not ('student' in [role.name for role in current_user.roles]):
+        raise HTTPException(status_code=401, detail="Нет доступа в соответствии с ролью")
     projects_office = db.query(ProjectOffice) \
         .join(ProjectOffice.accessible_classes) \
-        .filter(Group.name == student.className) \
+        .filter(Group.name == current_user.group_name) \
         .first()
 
     if projects_office:
@@ -71,25 +72,24 @@ def get_student_info(
             email=project_leader.email,
         )
 
-    group_leader = SchoolService().get_group_leader_by_class_name('7-Т')
+    group_leader = db.query(User).filter(
+        User.groups_leader.contains([current_user.group_name])
+    ).first()
 
     # Обработка классного руководителя
     group_leader_response = None
     if group_leader:
-
-        leader_info = db.query(User).filter(User.external_id == group_leader.uid).first()
-
         group_leader_response = GroupLeaderResponse(
-            display_name=leader_info.display_name if leader_info else group_leader.display_name,
-            about=leader_info.about if leader_info else None,
-            image=leader_info.image if leader_info else group_leader.image,
-            max_url=leader_info.max_link_url if leader_info else None,
-            email=leader_info.email if leader_info else group_leader.email,
+            display_name=group_leader.display_name,
+            about=group_leader.about,
+            image=group_leader.image,
+            max_url=group_leader.max_link_url,
+            email=group_leader.email,
         )
 
     return StudentInfoResponse(
-        display_name=student.display_name,
-        class_name=student.className,
+        display_name=current_user.display_name,
+        class_name=current_user.group_name,
         project_office_id=projects_office.id if projects_office else None,
         group_leader=group_leader_response,
         project_leader=project_leader_response,
@@ -97,11 +97,10 @@ def get_student_info(
 
 
 @router.get("/project_office", response_model=ProjectOfficeResponse)
-async def get_project_office_info(current_user: User = Depends(get_current_active_user),  db: Session = Depends(get_db)):
-    student = SchoolService().get_student_data(current_user.external_id)
-    print(student.className)
-
-    projects_office = db.query(ProjectOffice).join(ProjectOffice.accessible_classes).filter(Group.name==student.className).first()
+def get_project_office_info(current_user: User = Depends(get_current_active_user),  db: Session = Depends(get_db)):
+    if not ('student'in [role.name for role in current_user.roles]):
+        raise HTTPException(status_code=401, detail="Нет доступа в соответствии с ролью")
+    projects_office = db.query(ProjectOffice).join(ProjectOffice.accessible_classes).filter(Group.name==current_user.group_name).first()
 
     if projects_office is None:
         raise HTTPException(status_code=404, detail=str('Проект для пользователя не найден'))
@@ -110,12 +109,12 @@ async def get_project_office_info(current_user: User = Depends(get_current_activ
 
 
 @router.get("/record-book/marks", response_model=RecordBookResponse)
-async def get_record_book_marks(
+def get_record_book_marks(
         current_user: User = Depends(get_current_user),
         db: Session = Depends(get_db)
 ):
-    # Получаем класс студента
-    student_data = SchoolService().get_student_data(current_user.external_id)
-    student_class = student_data.className
-
-    return get_student_record_book_marks_simple(db, current_user.external_id, student_class)
+    try:
+        mark_book = get_student_record_book_marks_simple(db, current_user.external_id, current_user.group_name)
+    except HTTPException as err:
+        raise HTTPException(status_code=404, detail=str(err))
+    return mark_book

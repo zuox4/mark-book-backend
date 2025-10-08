@@ -110,7 +110,7 @@ def get_project_office_info(current_user: User = Depends(get_current_active_user
 
 @router.get("/record-book/marks", response_model=RecordBookResponse)
 def get_record_book_marks(
-        current_user: User = Depends(get_current_user),
+        current_user: User = Depends(get_current_active_user),
         db: Session = Depends(get_db)
 ):
     try:

@@ -2,8 +2,8 @@
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import and_
 from typing import List, Optional
-from app.database.models import EventType, Stage, PossibleResult, User
-
+from app.database.models import EventType, Stage, PossibleResult, User,Event
+from app.services.event_type_service.schemas import EventTypeResponse
 
 class EventTypeService:
     def __init__(self, db: Session):
@@ -183,7 +183,7 @@ class EventTypeService:
             self.db.rollback()
             raise Exception(f"Ошибка при удалении типа мероприятия: {str(e)}")
 
-    def get_event_types_by_leader(self, leader_id: int) -> List[EventType]:
+    def get_event_types_by_leader(self, leader_id: int) -> List[EventTypeResponse]:
         """
         Получение типов мероприятий по ID руководителя
         """

@@ -53,6 +53,10 @@ class UserSimpleResponse(BaseModel):
 
     class Config:
         from_attributes = True
+class Event(BaseModel):
+    id: int
+    title: str
+    description: Optional[str] = None
 
 class EventTypeResponse(EventTypeBase):
     id: int
@@ -60,6 +64,6 @@ class EventTypeResponse(EventTypeBase):
     leader: Optional[UserSimpleResponse]
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
-
+    events: List[Event]
     class Config:
         from_attributes = True

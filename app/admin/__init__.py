@@ -43,7 +43,7 @@ class UserAdmin(ModelView, model=User):
     name_plural = "Пользователи"
     icon = "fa-solid fa-user"
 
-    column_list = [User.id, User.external_id, User.verification_token, User.email, User.display_name, User.is_active, User.roles, User.groups_leader, User.requires_password]
+    column_list = [User.id, User.external_id, User.group_name, User.verification_token, User.email, User.display_name, User.is_active, User.roles, User.groups_leader, User.requires_password]
     column_searchable_list = [User.email, User.display_name]
     column_sortable_list = [User.id, User.email]
     form_columns = [
@@ -130,7 +130,12 @@ class EventTypeAdmin(ModelView, model=EventType):
     icon = "fa-solid fa-tags"
 
     column_list = [EventType.id, EventType.title]
-
+    form_ajax_refs = {
+        'leader': {
+            'fields': [User.display_name],
+            'order_by': User.display_name,
+        }
+    }
 
 # Админка для этапов
 class StageAdmin(ModelView, model=Stage):

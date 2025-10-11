@@ -4,6 +4,7 @@ from fastapi import Request
 from wtforms.validators import DataRequired
 
 from app.database.database import engine
+from app.database.models import p_office_event_association
 from app.database.models.users import User
 from app.database.models.roles import Role
 from app.database.models.events import Event
@@ -177,6 +178,7 @@ class StudentAchievementAdmin(ModelView, model=Achievement):
             'order_by': User.display_name,
         }
     }
+
 
 # Функция настройки админки
 def setup_admin(app):

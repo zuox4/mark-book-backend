@@ -46,3 +46,18 @@ def verify_token(token: str) -> Optional[dict]:
 
 def get_user_by_email(db: AsyncSession, email: str) -> Optional[User]:
     return db.query(User).filter(User.email == email).first()
+
+
+
+
+
+def create_refresh_token(data: dict, expires_delta: timedelta = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(days=30)
+
+    to_encode.update({"exp": expire, "type": "refresh"})
+    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    return encoded_jwt

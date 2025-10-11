@@ -27,6 +27,13 @@ class Settings:
     # Verification
     VERIFICATION_TOKEN_EXPIRE_HOURS: int = 24
 
+
+
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 30
+    REFRESH_TOKEN_SECRET_KEY: str = "your-refresh-token-secret-key"
+
+
+
     DB_HOST: str = os.getenv("DB_HOST")  # Например: "192.168.1.100"
     DB_PORT: int = os.getenv("DB_PORT")
     DB_NAME: str = os.getenv("DB_NAME")  # Например: "myapp_db"

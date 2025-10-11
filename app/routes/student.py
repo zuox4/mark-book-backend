@@ -11,7 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from app.database.models import User, ProjectOffice, Group
 
 from app.auth.dependencies import get_current_active_user, get_current_user
-from app.routes.mark_book import RecordBookResponse, get_student_record_book_marks_simple
+from app.routes.mark_book import RecordBookResponse, get_student_record_book_marks_optimized
 from app.services.SchoolServices import SchoolService
 
 
@@ -20,6 +20,7 @@ router = APIRouter()
 class Event(BaseModel):
     id: int
     title: str
+    is_active: bool
 
 class ProjectOfficeResponse(BaseModel):
     title: str
@@ -114,7 +115,7 @@ def get_record_book_marks(
         db: Session = Depends(get_db)
 ):
     try:
-        mark_book = get_student_record_book_marks_simple(db, current_user.id, current_user.group_name)
+        mark_book = get_student_record_book_marks_optimized(db, current_user.id, current_user.group_name)
     except HTTPException as err:
         raise HTTPException(status_code=404, detail=str(err))
     return mark_book

@@ -2,6 +2,7 @@ from fastapi import APIRouter
 from sqlalchemy.orm import Session
 from fastapi import Depends
 
+from app.auth.dependencies import get_current_active_teacher
 from app.database import get_db
 from app.database.models import EventType, Stage
 from app.services.sync_service import TeacherSyncService

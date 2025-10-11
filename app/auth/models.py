@@ -36,4 +36,5 @@ class UserResponse(BaseModel):
     roles: Optional[list] = None
 
 
-
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str

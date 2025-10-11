@@ -3,7 +3,7 @@ from sqlalchemy import and_, or_, func
 from fastapi import APIRouter, Depends, HTTPException
 from typing import List
 
-from ..auth.dependencies import get_current_active_user
+from ..auth.dependencies import get_current_active_user, get_current_active_teacher
 from ..database import get_db
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -42,7 +42,8 @@ class StudentJournalResponse(BaseModel):
 def get_class_journal(
         event_id: int,
         group_id: str,  # group_name из User
-        db: Session = Depends(get_db)
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_active_teacher)
 ):
     """
     Получить журнал класса по мероприятию
@@ -159,7 +160,7 @@ def update_student_result(
         stage_id: int,
         request: UpdateResultRequest,
         db: Session = Depends(get_db),
-        current_user: User = Depends(get_current_active_user),
+        current_user: User = Depends(get_current_active_teacher),
 
 ):
     result_id = request.result_id
@@ -223,7 +224,7 @@ def update_student_result(
 
 
 @router.get("/events/{event_type_id}/stages")
-def get_event_stages(event_type_id: int, db: Session = Depends(get_db),current_user: User = Depends(get_current_active_user)):
+def get_event_stages(event_type_id: int, db: Session = Depends(get_db),current_user: User = Depends(get_current_active_teacher)):
     """
     Получить стадии типа мероприятия
     """
@@ -260,6 +261,7 @@ def delete_student_result(
         student_id: int,
         stage_id: int,
         db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_active_teacher),
 ):
     """
     Удалить результат ученика для стадии мероприятия

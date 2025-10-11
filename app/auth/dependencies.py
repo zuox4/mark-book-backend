@@ -44,3 +44,12 @@ async def get_current_active_user(current_user: User = Depends(get_current_user)
         raise HTTPException(status_code=400, detail="Пользователь неактивен")
     return current_user
 
+
+async def get_current_active_teacher(current_user: User = Depends(get_current_user)):
+    if not current_user.is_active:
+        raise HTTPException(status_code=403, detail="Пользователь неактивен")
+
+    if not any(role.name == 'teacher' for role in current_user.roles):
+        raise HTTPException(status_code=403, detail="Доступно только для учителей")
+    print('Был запретный запрос')
+    return current_user

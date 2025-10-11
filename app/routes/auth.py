@@ -7,10 +7,10 @@ from app.database.database import get_db
 from app.services.registration_service import RegistrationService
 from app.database.models import User
 
-from app.auth.utils import create_access_token
+from app.auth.utils import create_access_token, create_refresh_token, verify_token
 from app.core.config import settings
 from app.auth.dependencies import get_current_active_user, get_current_user
-from app.auth.models import RegisterRequest, VerifyEmailRequest, LoginRequest, UserResponse
+from app.auth.models import RegisterRequest, VerifyEmailRequest, LoginRequest, UserResponse, RefreshTokenRequest
 from app.services.user_service import UserService
 
 router = APIRouter()
@@ -131,9 +131,16 @@ def login(
         data={"sub": user.email, "user_id": user.id},
         expires_delta=access_token_expires
     )
+    # Создаем refresh token (с большим сроком жизни)
+    refresh_token_expires = timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
 
+    refresh_token = create_refresh_token(
+        data={"sub": user.email, "user_id": user.id, "type": "refresh"},
+        expires_delta=refresh_token_expires
+    )
     return {
         "access_token": access_token,
+        "refresh_token": refresh_token,
         "token_type": "bearer",
         "user": {
             "id": user.id,
@@ -160,3 +167,60 @@ def get_current_user(
     return res
 
 
+@router.post("/refresh", response_model=dict)
+def refresh_token(
+        refresh_data: RefreshTokenRequest,
+        db: Session = Depends(get_db)
+):
+    """Обновление access token с помощью refresh token"""
+    try:
+        # Проверяем refresh token
+        payload = verify_token(refresh_data.refresh_token)
+        if payload is None:
+            raise HTTPException(status_code=401, detail="Невалидный токен")
+
+        email: str = payload.get("sub")
+        user_id: int = payload.get("user_id")
+
+        if email is None or user_id is None:
+            raise HTTPException(status_code=401, detail="Невалидный токен")
+
+        # Получаем пользователя из базы
+        user = db.query(User).filter(User.id == user_id, User.email == email).first()
+        if not user:
+            raise HTTPException(status_code=401, detail="Пользователь не найден")
+
+        # Проверяем активность пользователя
+        if not user.is_active:
+            raise HTTPException(status_code=403, detail="Аккаунт отключен")
+
+        # Создаем новый access token
+        access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(
+            data={"sub": user.email, "user_id": user.id},
+            expires_delta=access_token_expires
+        )
+        # Создаем новый refresh token (опционально - можно ротировать)
+        new_refresh_token = create_refresh_token(
+            data={"sub": user.email, "user_id": user.id, "type": "refresh"},
+            expires_delta=timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+        )
+
+        return {
+            "access_token": access_token,
+            "refresh_token": new_refresh_token,  # Добавьте это
+            "token_type": "bearer",
+            "user": {
+                "id": user.id,
+                "external_id": user.external_id,
+                "email": user.email,
+                "is_verified": user.is_verified,
+                "display_name": user.display_name,
+                "roles": [i.name for i in user.roles],
+            }
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Ошибка при обновлении токена")

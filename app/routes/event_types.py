@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
 from app.database.models import User
-from app.auth.dependencies import get_current_active_user
+from app.auth.dependencies import get_current_active_user, get_current_active_teacher
 from app.database.database import get_db
 from app.services.event_type_service.event_type_service import EventTypeService
 from app.services.event_type_service.schemas import (
@@ -22,7 +22,7 @@ router = APIRouter()
     summary="Получить все типы мероприятий",
     description="Получение всех типов мероприятий с полной информацией о стадиях и результатах"
 )
-def get_all_event_types(db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+def get_all_event_types(db: Session = Depends(get_db), current_user: User = Depends(get_current_active_teacher)):
     """
     Получение всех типов мероприятий с детальной информацией:
     - Основная информация о типе мероприятия
@@ -47,7 +47,7 @@ def get_all_event_types(db: Session = Depends(get_db), current_user: User = Depe
     summary="Получить тип мероприятия по ID",
     description="Получение детальной информации о конкретном типе мероприятия"
 )
-def get_event_type(event_type_id: int, db: Session = Depends(get_db),current_user: User = Depends(get_current_active_user),):
+def get_event_type(event_type_id: int, db: Session = Depends(get_db),current_user: User = Depends(get_current_active_teacher),):
     try:
         service = EventTypeService(db)
         event_type = service.get_event_type_by_id(event_type_id)
@@ -75,7 +75,7 @@ def get_event_type(event_type_id: int, db: Session = Depends(get_db),current_use
     summary="Создать тип мероприятия",
     description="Создание нового типа мероприятия со стадиями и возможными результатами"
 )
-def create_event_type(event_type_data: EventTypeCreate, db: Session = Depends(get_db),current_user: User = Depends(get_current_active_user),):
+def create_event_type(event_type_data: EventTypeCreate, db: Session = Depends(get_db),current_user: User = Depends(get_current_active_teacher),):
     try:
         service = EventTypeService(db)
         event_type = service.create_event_type(event_type_data.dict())
@@ -98,7 +98,7 @@ def create_event_type(event_type_data: EventTypeCreate, db: Session = Depends(ge
     summary="Получить типы мероприятий руководителя",
     description="Получение типов мероприятий по ID руководителя"
 )
-def get_event_types_by_leader(leader_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+def get_event_types_by_leader(leader_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_teacher)):
     try:
         service = EventTypeService(db)
         event_types = service.get_event_types_by_leader(leader_id)

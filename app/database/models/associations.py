@@ -13,8 +13,8 @@ p_office_group_association = Table(
 p_office_event_association = Table(
     'p_office_event_association',
     Base.metadata,
-    Column('p_office_id', Integer, ForeignKey('project_offices.id')),
-    Column('event_id', Integer, ForeignKey('events.id'))
+    Column('p_office_id', Integer, ForeignKey('project_offices.id',ondelete='CASCADE')),
+    Column('event_id', Integer, ForeignKey('events.id',ondelete='CASCADE')),
 )
 
 # Ассоциативная таблица для ролей пользователей

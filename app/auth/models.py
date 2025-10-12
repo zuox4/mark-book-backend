@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import Optional
 
 class Token(BaseModel):
@@ -22,6 +22,19 @@ class RegisterRequest(BaseModel):
     email: str
     password: str
 
+
+class GoogleAuthRequest(BaseModel):
+    token: str
+
+class GoogleUserInfo(BaseModel):
+    email: EmailStr
+    name: Optional[str] = None
+    picture: Optional[str] = None
+    given_name: Optional[str] = None
+    family_name: Optional[str] = None
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
 
 class LoginRequest(BaseModel):
     email: str

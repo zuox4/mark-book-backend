@@ -88,6 +88,100 @@ class SMTPEmailService:
             db.commit()
             return False
 
+    def send_password_reset_email(
+            self,
+            db: Session,
+            email: str,
+            new_password: str,
+            user_name: str = None
+    ) -> bool:
+        """
+        Отправка email с новым паролем через SMTP
+        """
+        try:
+            # Создаем HTML и текстовый контент
+
+            text_content = self._create_password_reset_email_text(
+                user_name=user_name,
+                new_password=new_password
+            )
+
+            # Создаем сообщение
+            msg = MIMEMultipart('alternative')
+            msg['Subject'] = f"Восстановление пароля - {settings.SCHOOL_NAME}"
+            msg['From'] = f"{settings.SCHOOL_NAME} <{settings.SMTP_FROM_EMAIL}>"
+            msg['To'] = email
+            msg['Reply-To'] = f"support@{settings.SCHOOL_DOMAIN}"
+
+            # Добавляем текстовую и HTML версии
+            part1 = MIMEText(text_content, 'plain', 'utf-8')
+
+            msg.attach(part1)
+
+
+            # Отправка email
+            with smtplib.SMTP(self.smtp_server, self.smtp_port) as server:
+                if self.use_tls:
+                    server.starttls()
+                server.login(self.smtp_username, self.smtp_password)
+                server.send_message(msg)
+
+            # Логируем успешную отправку
+            email_log = EmailLog(
+                email=email,
+                subject=msg['Subject'],
+                template_name="password_reset",
+                status="sent"
+            )
+            db.add(email_log)
+            db.commit()
+
+            print(f"✅ Password reset email sent to: {email}")
+            return True
+
+        except Exception as e:
+            print(f"❌ Failed to send password reset email to {email}: {e}")
+
+            # Логируем ошибку
+            email_log = EmailLog(
+                email=email,
+                subject="Password Reset",
+                template_name="password_reset",
+                status="failed",
+                error_message=str(e)
+            )
+            db.add(email_log)
+            db.commit()
+            return False
+
+    def _create_password_reset_email_text(self, user_name: str, new_password: str) -> str:
+        """
+        Создание текстовой версии письма для восстановления пароля
+        """
+        return f"""
+Здравствуйте, {user_name}!
+
+Вы запросили восстановление пароля для доступа к электронной системе учета достижений учеников профильных классов Школы 1298.
+
+Ваш новый пароль для входа в систему:
+{new_password}
+
+Рекомендуем после входа в систему изменить пароль в личном кабинете.
+
+Основные возможности платформы:
+• Электронная зачетная книжка
+• Учет достижений и мероприятий
+• Отслеживание прогресса обучения
+• Доступ к материалам профильных классов
+
+Если вы не запрашивали восстановление пароля, пожалуйста, свяжитесь с администратором системы.
+
+С уважением,
+Команда Школы 1298 «Профиль Курикно»
+
+📧 Это письмо сгенерировано автоматически. Пожалуйста, не отвечайте на него.
+Школа 1298 © 2024. Все права защищены.
+"""
     def send_welcome_email(
             self,
             db: Session,

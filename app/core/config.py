@@ -11,7 +11,7 @@ class Settings:
     # JWT
     SECRET_KEY: str = os.getenv("SECRET_KEY")
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 0.5
 
     # School Info
     SCHOOL_NAME: str = os.getenv("SCHOOL_NAME")
@@ -48,5 +48,6 @@ class Settings:
     SMTP_FROM_EMAIL = os.getenv("SMTP_FROM_EMAIL", "noreply@school1298.ru")
     SMTP_USE_TLS = os.getenv("SMTP_USE_TLS", "True").lower() == "true"
 
+    GOOGLE_CLIENT_ID=os.getenv("GOOGLE_CLIENT_ID", "")
 
 settings = Settings()
